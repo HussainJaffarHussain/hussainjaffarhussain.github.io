@@ -507,10 +507,16 @@
     const endpoint = D.contact.formEndpoint;
     if (endpoint) {
       setBusy(true); setStatus('');
+      // form services can be slow: reassure after a few seconds, give up cleanly after 60
+      const slow = setTimeout(() => setStatus('Still sending, the mail service can take a few seconds...'), 5000);
+      const ctrl = new AbortController();
+      const giveUp = setTimeout(() => ctrl.abort(), 60000);
       try {
         // _subject and _replyto are understood by FormSubmit and Formspree: a clear email subject, and Reply goes to the visitor
         const payload = { ...data, _subject: 'Portfolio message: ' + data.subject, _replyto: data.email, _template: 'table' };
-        const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(payload) });
+        // a url-encoded body with only an Accept header is a "simple" request: no CORS preflight, so one round trip instead of two
+        const body = new URLSearchParams(payload);
+        const res = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body, signal: ctrl.signal });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const out = await res.json().catch(() => ({}));
         if (out.success === false || out.success === 'false') throw new Error(out.message || 'Not delivered');
@@ -518,7 +524,7 @@
         setStatus('Thank you. Your message was sent and I will reply by email.', 'ok');
       } catch (err) {
         setStatus('Sorry, the message could not be sent. Please try again in a moment' + (L.email ? ', or email ' + L.email + ' directly.' : '.'), 'bad');
-      } finally { setBusy(false); }
+      } finally { clearTimeout(slow); clearTimeout(giveUp); setBusy(false); }
       return;
     }
     if (L.email) {
