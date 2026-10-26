@@ -26,7 +26,9 @@ window.PORTFOLIO = {
   contact: {
     // Paste a Formspree (or similar) endpoint here to receive form messages in your inbox.
     // Example: "https://formspree.io/f/abcdwxyz". Leave null to fall back to email (mailto).
-    formEndpoint: "https://formsubmit.co/ajax/virtualstager360@gmail.com"
+    formEndpoint: "https://api.web3forms.com/submit",
+    // Web3Forms access key: public by design (it only lets this form send to your inbox). Manage it at web3forms.com.
+    accessKey: "d7ec4409-6e9d-4434-aa95-e2c1521cf996"
   },
 
   about: {

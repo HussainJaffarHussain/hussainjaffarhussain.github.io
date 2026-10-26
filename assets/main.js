@@ -512,8 +512,10 @@
       const ctrl = new AbortController();
       const giveUp = setTimeout(() => ctrl.abort(), 60000);
       try {
-        // _subject and _replyto are understood by FormSubmit and Formspree: a clear email subject, and Reply goes to the visitor
-        const payload = { ...data, _subject: 'Portfolio message: ' + data.subject, _replyto: data.email, _template: 'table' };
+        // Web3Forms (access key) or FormSubmit/Formspree: either way a clear email subject, and Reply goes to the visitor
+        const payload = D.contact.accessKey
+          ? { access_key: D.contact.accessKey, ...data, subject: 'Portfolio message: ' + data.subject, from_name: D.owner.name + ' Portfolio', replyto: data.email }
+          : { ...data, _subject: 'Portfolio message: ' + data.subject, _replyto: data.email, _template: 'table' };
         // a url-encoded body with only an Accept header is a "simple" request: no CORS preflight, so one round trip instead of two
         const body = new URLSearchParams(payload);
         const res = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body, signal: ctrl.signal });
